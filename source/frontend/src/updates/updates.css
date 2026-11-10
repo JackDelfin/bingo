@@ -1,0 +1,32 @@
+.updates-panel {
+  border-top: 1px solid var(--settings-border, #64748b);
+  padding-top: 1rem;
+  display: grid;
+  gap: .75rem;
+}
+
+.updates-panel p,
+.updates-panel h3,
+.updates-panel h4 {
+  margin: 0;
+}
+
+.updates-panel a {
+  color: inherit;
+  text-decoration: underline;
+  padding-block: .5rem;
+}
+
+.update-confirmation {
+  border: 2px solid currentColor;
+  border-radius: .6rem;
+  padding: 1rem;
+  display: grid;
+  gap: .75rem;
+}
+
+.update-actions {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+}

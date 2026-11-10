@@ -1,0 +1,630 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background-color: black;
+  color: white;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.game-board {
+  display: table;
+  width: 100%;
+  height: 55vh;
+  padding: 0.5vh 0.5vw 0.5vh 0.5vw;
+}
+
+.board-row {
+  display: table-row;
+}
+
+.board-letter, .board-number {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  width: 6vw;
+  float: left;
+}
+
+.board-letter {
+  font-size: 3.5vw;
+  padding: .1vh .6vw .1vh .6vw;
+}
+
+.board-number {
+  font-size: 2.5vw;
+  border: none;
+  background-color: black;
+  color: #555;
+  padding: 1.25vh 1.25vw 1.25vh 1.25vw;
+}
+
+.board-number-view {
+  color: #222;
+}
+
+.board-number:active {
+  border: solid white;
+  border-width: 0.5vh 0.3vw 0.5vh 0.3vw;
+  padding: .75vh .95vw .75vh .95vw;
+}
+
+.board-number:disabled {
+  color: white;
+  border: none;
+  padding: 1.25vh 1.25vw 1.25vh 1.25vw;
+}
+
+.board-number-active:disabled {
+  color: red;
+}
+
+.info-sections {
+  width: 40%;
+  float: left;
+  padding: 2vh 2vw 0.5vh 2vw;
+}
+
+.bingo-validation {
+  width: 20%;
+  float: left;
+  text-align: center;
+  padding-top: 2vh;
+}
+
+.bingo-status {
+  width: 40%;
+  float: right;
+}
+
+.last-numbers {
+  height: 28vh;
+}
+
+.previous-numbers {
+  font-size: 3vw;
+  float: left;
+  padding-right: 5%;
+  width: 9vw;
+}
+
+.current-number {
+  font-size: 10vw;
+  height: 40%;
+  vertical-align: middle;
+  padding-top: 2.5vh;
+}
+
+.last-numbers:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.buttons {
+  text-align: center;
+  padding-top: 1.5vh;
+}
+
+.buttons button {
+  border: none;
+  background-color: black;
+  padding-left: 2vw;
+  padding-right: 2vw;
+  font-size: 5vw;
+  color: white;
+}
+
+.buttons img {
+  max-width: 4vw;
+}
+
+.buttons button:disabled img {
+  opacity: 0.3;
+}
+
+.audio-callouts {
+  margin-top: .75rem;
+  text-align: center;
+  font-size: clamp(.875rem, 1.2vw, 1.125rem);
+}
+
+.audio-callouts label {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.audio-callouts input {
+  width: 20px;
+  height: 20px;
+  accent-color: #63d9ae;
+}
+
+.audio-callouts small {
+  display: block;
+  color: #bbb;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+.audio-callouts [role="alert"] {
+  color: #ffb3a7;
+  font-size: .875rem;
+  line-height: 1.4;
+}
+
+.card-table {
+  display: table;
+  border-collapse: collapse;
+}
+
+.cardTHead {
+  display: table-header-group;
+}
+
+.cardTBody {
+  display: table-row-group;
+}
+
+.cardRow {
+  display: table-row;
+}
+
+.cardCell, .cardHead {
+  display: table-cell;
+  font-size: 2vw;
+  width: 4vw;
+  height: 5vh;
+  vertical-align: middle;
+  border: 0.2vw solid white;
+}
+
+.cardHead {
+  padding-top: 1.2vh;
+  padding-bottom: 1.2vh;
+}
+
+.cardCell {
+  padding-top: 0.5vh;
+  padding-bottom: 0.5vh;
+}
+
+.cardCellHighlighted {
+  color: green;
+}
+
+.cardCellSelected {
+  color: yellow;
+}
+
+.card-number-input .number-display {
+  padding: 1vh 0 3vh 0;
+  font-size: 2vw;
+}
+
+.card-number-input input {
+  font-size: 2vw;
+  width: 8vw;
+  padding: 0 0.3vw 0 0.4vw;
+  border: 0.1vw solid white;
+  background-color: transparent;
+  color: white;
+}
+
+.card-number-input button {
+  font-size: 2vw;
+  width: 4vw;
+  margin: 0.5vh 0.2vw 0.5vh 0.2vw;
+  padding: 1vh 0 1vh 0;
+  background-color: black;
+  border: 0.2vw solid white;
+  color: white;
+}
+
+.bingo-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 35vh;
+  padding: 0 2vw;
+}
+
+.bingo-message {
+  font-size: 10vw;
+  padding-top: 2vh;
+}
+
+.bingo-types {
+  display: flex;
+  padding-top: 2vh;
+  padding-bottom: 3vh;
+  margin-top: 1vh;
+  margin-bottom: 2vh;
+  justify-content: center;
+  align-items: stretch;
+  flex-direction: column;
+  height: 25vh;
+}
+
+.bingo-types-line {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.bingoType {
+  padding: 0.5vh .5vw 0.5vh .5vw;
+}
+
+.bingoType button {
+  font-size: 3vw;
+  color: white;
+  padding: 1vh 1vw 1vh 1vw;
+  background-color: black;
+  border: none;
+}
+
+.bingoType button img {
+  max-height: 20vh;
+  width: 100%;
+}
+
+.bingoType .bingoTypeSelected {
+  color: red;
+}
+
+.bingoType .bingoTypeSelected img {
+  filter: url(colorfilters.svg#colorChangeRed)
+}
+
+.bingoType .bingoTypeHighlighted {
+  color: green;
+}
+
+.bingoType .bingoTypeHighlighted img {
+  filter: url(colorfilters.svg#colorChangeGreen)
+}
+
+.bingoType .bingoTypeCurrent {
+  color: yellow;
+}
+
+.bingoType .bingoTypeCurrent img {
+  filter: url(colorfilters.svg#colorChangeYellow)
+}
+
+.bingoType button:disabled {
+  color: #222;
+}
+
+.bingoType button:disabled img {
+  filter: brightness(20%);
+}
+
+.bingo-types-buttons {
+  text-align: center;
+  padding-top: 1.5vh;
+}
+
+.bingo-types-buttons button {
+  font-size: 6vh;
+  height: 9vh;
+  width: 10vw;
+  background-color: black;
+  border: 0.2vw solid white;
+  color: white;
+  vertical-align: top;
+}
+
+.bingo-types-buttons button:disabled {
+  border: 0.2vw solid #555;
+  color: #555;
+}
+
+.bingo-types-buttons img {
+  height: 55%;
+}
+
+.bingo-types-buttons button:disabled img {
+  opacity: 0.3;
+}
+
+.bingo-types-buttons .smalltext {
+  font-size: 3vh;
+}
+
+.bingoButton {
+  font-size: 3.5vw;
+  padding: 1vh 5vw 1vh 5vw;
+  background-color: black;
+  border: 0.2vw solid white;
+  color: white;
+}
+
+.bingoButton button:disabled {
+  border-color: #555;
+  color: #555;
+}
+
+.connection-status {
+  position: fixed;
+  top: 1vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 0.5em 1em;
+  background-color: #AA2222AA;
+  border: 0.15vw solid #FFFFFFCC;
+  border-radius: 0.5em;
+  color: white;
+  font-size: 1.2em;
+}
+
+.connection-status button {
+  margin-left: 1em;
+}
+
+/* Portrait mode: board transposed on the left (letters as column headers),
+   info and controls stacked in a column on the right */
+@media (orientation: portrait) {
+  .Bingo {
+    display: grid;
+    grid-template-columns: 48vw 1fr;
+    column-gap: 4vw;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  .game-board {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100vh;
+    padding: 0.5vh 0.5vw;
+  }
+
+  .board-row {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .board-letter, .board-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    float: none;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .board-letter {
+    font-size: min(4.5vh, 7vw);
+    padding: 0;
+  }
+
+  .board-number,
+  .board-number:disabled {
+    font-size: min(3.5vh, 5vw);
+    padding: 0;
+  }
+
+  /* Outline instead of border: a border would grow the pressed cell and shift the column */
+  .board-number:active {
+    border: none;
+    outline: 0.5vw solid white;
+    outline-offset: -0.5vw;
+    padding: 0;
+  }
+
+  .info-sections, .bingo-validation, .bingo-status {
+    grid-column: 2;
+    float: none;
+    width: 100%;
+  }
+
+  .info-sections {
+    grid-row: 1;
+    padding: 2vh 2vw 0.5vh 0;
+  }
+
+  /* Takes the free space between the last numbers and the patterns, content centered in it */
+  .bingo-validation {
+    grid-row: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Patterns and bingo buttons sit at the bottom of the column */
+  .bingo-status {
+    grid-row: 3;
+    height: auto;
+    padding: 1vh 2vw 3vh 0;
+  }
+
+  .last-numbers {
+    display: flex;
+    align-items: center;
+    height: auto;
+  }
+
+  .last-numbers:after {
+    display: none;
+  }
+
+  .previous-numbers {
+    flex: none;
+    font-size: 5vw;
+    width: auto;
+    padding-right: 3vw;
+    white-space: nowrap;
+  }
+
+  .current-number {
+    flex: 1;
+    font-size: 11vw;
+    height: auto;
+    padding-top: 0;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .buttons button {
+    font-size: 8vw;
+  }
+
+  .buttons img {
+    max-width: 7vw;
+  }
+
+  .cardCell, .cardHead {
+    font-size: 3.5vw;
+    width: 8vw;
+    height: 4vh;
+    border-width: 0.3vw;
+  }
+
+  .card-number-input .number-display,
+  .card-number-input input,
+  .card-number-input button {
+    font-size: 4vw;
+  }
+
+  .card-number-input input {
+    width: 16vw;
+  }
+
+  .card-number-input button {
+    width: 9vw;
+    border-width: 0.3vw;
+  }
+
+  .bingo-message {
+    font-size: 14vw;
+  }
+
+  .bingo-types {
+    height: auto;
+    padding-bottom: 1vh;
+    margin-bottom: 1vh;
+  }
+
+  .bingoType button {
+    font-size: 5vw;
+  }
+
+  .bingoType button img {
+    max-height: 15vh;
+  }
+
+  .bingo-types-buttons button {
+    font-size: 5vh;
+    height: 7vh;
+    width: 13vw;
+    border-width: 0.3vw;
+  }
+
+  .bingoButton {
+    font-size: 7vw;
+    padding: 1vh 8vw;
+    border-width: 0.3vw;
+  }
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  animation: dialog-fade 150ms ease-out;
+}
+
+.dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90vw, 32rem);
+  padding: 1.5rem;
+  background-color: #111;
+  color: white;
+  border: 2px solid white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 2rem rgba(255, 0, 0, 0.35);
+  animation: dialog-pop 150ms ease-out;
+}
+
+.dialog-content:focus {
+  outline: none;
+}
+
+.dialog-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  color: red;
+}
+
+.dialog-message {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dialog-button {
+  min-width: 6rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background-color: black;
+  color: white;
+  border: 2px solid white;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.dialog-button:hover,
+.dialog-button:focus-visible {
+  background-color: #333;
+  outline: none;
+}
+
+.dialog-button-primary {
+  background-color: red;
+  border-color: red;
+}
+
+.dialog-button-primary:hover,
+.dialog-button-primary:focus-visible {
+  background-color: #c00;
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+}

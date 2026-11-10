@@ -1,0 +1,208 @@
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import * as api from '../api/client';
+import { INITIAL_STATE } from '../game/history';
+import DialogProvider from '../dialog/DialogProvider';
+import type { ServerGameState } from '../game/types';
+import { FakeWebSocket } from '../test/fakeWebSocket';
+import GamePage from './GamePage';
+
+vi.mock('../api/client', () => ({
+  getPatterns: vi.fn(),
+  validateCard: vi.fn(),
+}));
+
+const serverState = (overrides: Partial<ServerGameState> = {}): ServerGameState => ({
+  ...INITIAL_STATE,
+  revision: 0,
+  lastPushId: null,
+  ...overrides,
+});
+
+async function renderAt(path: string, state = serverState()) {
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/view/:id" element={<GamePage />} />
+        <Route path="/control/:id/:code" element={<GamePage />} />
+      </Routes>
+    </MemoryRouter>,
+    { wrapper: DialogProvider },
+  );
+  const ws = FakeWebSocket.latest();
+  act(() => {
+    ws.open();
+    ws.receive({ type: 'state', state });
+  });
+  // Let the pattern list load
+  await act(async () => {});
+  return ws;
+}
+
+const lastPush = (ws: FakeWebSocket) => {
+  const push = ws.pushes().at(-1);
+  if (push?.action !== 'push') throw new Error('No push sent');
+  return push;
+};
+
+/** The server accepts the pending push, which lets the next one go */
+let revision = 0;
+const ack = (ws: FakeWebSocket) =>
+  act(() => ws.receive({ type: 'ack', pushId: lastPush(ws).pushId, revision: ++revision }));
+
+beforeEach(() => {
+  revision = 0;
+  FakeWebSocket.reset();
+  vi.stubGlobal('WebSocket', FakeWebSocket);
+  vi.mocked(api.getPatterns).mockResolvedValue([['row', 'column']]);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+describe('control mode', () => {
+  test('each change pushes the state that includes it', async () => {
+    const ws = await renderAt('/control/game1/secret');
+
+    await userEvent.click(screen.getByRole('button', { name: '7' }));
+    expect(lastPush(ws)).toMatchObject({
+      gameId: 'game1',
+      code: 'secret',
+      baseRevision: 0,
+      state: { eventHistory: [{ number: 7, patterns: [] }], eventPosition: 1 },
+    });
+    expect(screen.getByRole('button', { name: '7' })).toBeDisabled();
+
+    ack(ws);
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(lastPush(ws)).toMatchObject({ baseRevision: revision, state: { eventPosition: 0 } });
+    expect(screen.getByRole('button', { name: '7' })).toBeEnabled();
+  });
+
+  test('records a manually verified paper-card winner and can keep checking', async () => {
+    const ws = await renderAt(
+      '/control/game1/secret',
+      serverState({
+        eventHistory: [{ number: 9, patterns: [] }],
+        eventPosition: 1,
+      }),
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Bingo' }));
+    ack(ws);
+    expect(screen.getByText(/Check the physical card/)).toBeInTheDocument();
+    expect(api.validateCard).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm & check another' }));
+    expect(lastPush(ws).state).toMatchObject({
+      eventHistory: [
+        { number: 9, patterns: [] },
+        { number: null, patterns: ['any-line'] },
+      ],
+      bingo: true,
+      validationResult: null,
+    });
+    ack(ws);
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel check' }));
+    expect(lastPush(ws).state.bingo).toBe(false);
+  });
+
+  test('drawing is blocked while checking a bingo', async () => {
+    const ws = await renderAt(
+      '/control/game1/secret',
+      serverState({
+        eventHistory: [{ number: 9, patterns: [] }],
+        eventPosition: 1,
+        bingo: true,
+      }),
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '10' }));
+    expect(screen.getByRole('alertdialog', { name: 'Bingo in progress' })).toBeInTheDocument();
+    expect(ws.pushes()).toEqual([]);
+  });
+
+  test('reset asks for confirmation first', async () => {
+    const ws = await renderAt(
+      '/control/game1/secret',
+      serverState({ eventHistory: [{ number: 9, patterns: [] }], eventPosition: 1 }),
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(ws.pushes()).toEqual([]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Reset' }));
+    expect(lastPush(ws).state).toMatchObject({ eventHistory: [], eventPosition: 0 });
+  });
+
+  test('asks which version wins when the game changed elsewhere', async () => {
+    const ws = await renderAt('/control/game1/secret');
+    await userEvent.click(screen.getByRole('button', { name: '7' }));
+    act(() =>
+      ws.receive({
+        type: 'conflict',
+        pushId: lastPush(ws).pushId,
+        state: serverState({ eventHistory: [{ number: 64, patterns: [] }], eventPosition: 1, revision: 5 }),
+      }),
+    );
+
+    const dialog = screen.getByRole('alertdialog', { name: 'Game changed elsewhere' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Load other' }));
+    expect(screen.getByRole('button', { name: '64' })).toHaveClass('board-number-active');
+    expect(screen.getByRole('button', { name: '7' })).toBeEnabled();
+  });
+});
+
+describe('view mode', () => {
+  test('follows the server and never pushes', async () => {
+    const ws = await renderAt('/view/game1');
+    expect(screen.getByRole('button', { name: 'Undo', hidden: true })).not.toBeVisible();
+
+    act(() =>
+      ws.receive({
+        type: 'state',
+        state: serverState({ eventHistory: [{ number: 64, patterns: [] }], eventPosition: 1 }),
+      }),
+    );
+    expect(screen.getByRole('button', { name: '64' })).toHaveClass('board-number-active');
+
+    await userEvent.click(screen.getByRole('button', { name: '12' }));
+    expect(ws.pushes()).toEqual([]);
+  });
+
+  test('shows the bingo message while the controller checks a card', async () => {
+    await renderAt(
+      '/view/game1',
+      serverState({ eventHistory: [{ number: 9, patterns: [] }], eventPosition: 1, bingo: true }),
+    );
+    expect(screen.getByText('BINGO!')).toBeInTheDocument();
+  });
+});
+
+test('an unknown game goes back to the home page', async () => {
+  render(
+    <MemoryRouter initialEntries={['/view/nope']}>
+      <Routes>
+        <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/view/:id" element={<GamePage />} />
+      </Routes>
+    </MemoryRouter>,
+    { wrapper: DialogProvider },
+  );
+  const ws = FakeWebSocket.latest();
+  act(() => {
+    ws.open();
+    ws.receive({ type: 'notFound' });
+  });
+  const dialog = await screen.findByRole('alertdialog', { name: 'Game not found' });
+  expect(dialog).toHaveTextContent('There is no game named "nope".');
+  await userEvent.click(within(dialog).getByRole('button', { name: 'OK' }));
+  expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument();
+});

@@ -1,0 +1,2 @@
+FROM localhost/reactbingo-backend:venue
+COPY backend-dist/ /app/dist/
